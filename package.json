@@ -1,0 +1,18 @@
+{
+  "name": "lock_parser",
+  "packageManager": "yarn@3.6.3",
+  "dependencies": {
+    "@types/ndjson": "^2.0.4",
+    "exceljs": "^4.4.0",
+    "ndjson": "^2.0.0",
+    "typescript": "^5.3.3",
+    "yaml": "^2.3.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.4"
+  },
+  "scripts": {
+    "start": "tsc --watch",
+    "run": "node index.js"
+  }
+}
