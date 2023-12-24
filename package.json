@@ -13,6 +13,7 @@
   },
   "scripts": {
     "start": "tsc --watch",
+    "compile": "tsc",
     "run": "node index.js"
   }
 }

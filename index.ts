@@ -10,7 +10,7 @@ import ndjson from 'ndjson'
 const asyncExec = util.promisify(exec)
 
 async function main() {
-    const demoPath = path.resolve('C:\\Users\\Lourence\\Projects\\cxbox-demo\\ui\\yarn.lock')
+    const demoPath = path.resolve('C:\\Users\\User\\Projects\\cxbox-demo\\ui\\yarn.lock')
 
     let file = await fs.readFile(demoPath, 'utf-8')
     let json = parse(file)
@@ -18,7 +18,9 @@ async function main() {
     const xls = new ExcelJS.Workbook()
     const table = await xls.xlsx.readFile('deps_fe.xlsx')
 
+    table.removeWorksheet('deps')
     const ws = table.addWorksheet('deps')
+
 
     const data = Object.entries(json).filter(value => value[0] !== '__metadata').map(([key, val], index) => ({id: index + 1, name: key.split('@npm:')[0].split('@patch:')[0], ver: (val as any).version}))
 
@@ -27,17 +29,17 @@ async function main() {
     /**
      * npm parser
      */
-    // const step = 5
-    // await fs.writeFile('data.txt', '')
-    // for(let i = 0; i <=data.length; i+=step) {
-    //     const some = data.slice(i, i + step)
-    //     const names = some.map(val => `${val.name}@${val.ver}`).join(' ')
-    //     console.log('begin', i, i+step)
-    //     const res = await asyncExec(`yarn npm info ${names} --json --fields time,repository`)
-    //     const collectedData = res.stdout
-    //
-    //     fs.appendFile('data.txt', collectedData)
-    // }
+    const step = 5
+    await fs.writeFile('data.txt', '')
+    for(let i = 0; i <=data.length; i+=step) {
+        const some = data.slice(i, i + step)
+        const names = some.map(val => `${val.name}@${val.ver}`).join(' ')
+        console.log('begin', i, i+step)
+        const res = await asyncExec(`yarn npm info ${names} --json --fields time,repository`)
+        const collectedData = res.stdout
+
+        fs.appendFile('data.txt', collectedData)
+    }
 
     const npmDataArr: {name: string, time: Record<string, string>, gitLink?: string}[] = []
 
@@ -46,17 +48,29 @@ async function main() {
     }).on('end', () => {
         const tableRows = data.map(lockData => {
             const item = npmDataArr.find(npmData => npmData.name === lockData.name)
-            return [lockData.id, lockData.name, String(lockData.ver), new Intl.DateTimeFormat('ru-RU').format(new Date(item?.time?.[lockData.ver] ?? 0)), item?.gitLink]
+            return [lockData.id, lockData.name, String(lockData.ver), new Date(item?.time?.[lockData.ver] ?? 0), item?.gitLink]
         })
 
-        ws.addRows(tableRows)
+        ws.addTable({
+            name: 'MyTable',
+            ref: 'A1',
+            headerRow: true,
+            style: {
+                theme: 'TableStyleLight13',
+                showRowStripes: true,
+            },
+            columns: [
+                {name: 'id', filterButton: true},
+                {name: 'name', filterButton: false},
+                {name: 'ver', filterButton: false},
+                {name: 'date', filterButton: true},
+                {name: 'link', filterButton: false},
+            ],
+            rows: tableRows,
+        });
 
         table.xlsx.writeFile('deps.xlsx')
     })
-
-
-
-
 
 }
 
